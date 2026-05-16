@@ -1,7 +1,7 @@
 
 
 set(BUILD_USD_PLUGIN 1)
-set(BUILD_HOUDINI_PLUGIN 1)
+set(BUILD_HOUDINI_PLUGIN 0)
 
 # Set the C++ requirements
 set(CMAKE_CXX_STANDARD 17) # c++ 17 used for some convenience functions

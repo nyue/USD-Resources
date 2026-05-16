@@ -1,0 +1,75 @@
+{
+	"version": 3,
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 26,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "debug",
+			"displayName": "Debug Config",
+			"description": "debug build using Ninja generator",
+			"generator": "Ninja",
+			"environment": {
+			},
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_MODULE_PATH": "$env{CMAKE_UTIL_PATH};$env{CMAKE_MODULE_PATH}"
+			}
+		},
+		{
+			"name": "ubuntu-debug",
+			"displayName": "Ubuntu Debug Config",
+			"description": "Ubuntu debug build using Ninja generator",
+			"inherits": "debug",
+			"binaryDir": "${sourceDir}/build/ubuntu-debug",
+			"environment": {
+			},
+			"cacheVariables": {
+				"CMAKE_INSTALL_PREFIX": "/tmp/lima-ubuntu-install",
+				"CPACK_GENERATOR": "ZIP"
+			}
+		},
+		{
+			"name": "rh-debug",
+			"displayName": "RHEL Debug Config",
+			"description": "Red Hat Enterprise Linux debug build using Ninja generator",
+			"inherits": "debug",
+			"binaryDir": "${sourceDir}/build/rh-debug",
+			"environment": {
+			},
+			"cacheVariables": {
+				"CMAKE_INSTALL_PREFIX": "/tmp/lima-rh-install",
+				"CPACK_GENERATOR": "ZIP"
+			}
+		},
+		{
+			"name": "windows-debug",
+			"displayName": "Windows Debug Config",
+			"description": "Windows debug build using Ninja generator",
+			"inherits": "debug",
+			"binaryDir": "${sourceDir}/build/windows-debug",
+			"environment": {
+			},
+			"cacheVariables": {
+				"CMAKE_INSTALL_PREFIX": "$env{TEMP}/lima-windows-install",
+				"CPACK_GENERATOR": "MSI"
+			}
+		},
+		{
+			"name": "macos-debug",
+			"displayName": "MacOS Debug Config",
+			"description": "MacOS debug ebug build using Ninja generator",
+			"inherits": "debug",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build/macos-debug",
+			"environment": {
+			},
+			"cacheVariables": {
+				"CMAKE_INSTALL_PREFIX": "/tmp/lima-macos-install",
+				"CPACK_GENERATOR": "ZIP"
+			}
+		}
+	]
+}
