@@ -4,6 +4,7 @@ list(FILTER sources EXCLUDE REGEX "./module*|./wrap*")
 file(GLOB py_sources "[module|wrap]*.cpp")
 
 find_package(peasyocl REQUIRED)
+find_package(OpenGL REQUIRED)
 
 if (${BUILD_USD_PLUGIN})
 find_package(Python3 REQUIRED)
