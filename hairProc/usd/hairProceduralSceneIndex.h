@@ -4,6 +4,7 @@
 #include "pxr/imaging/hd/filteringSceneIndex.h"
 
 #include "hairProceduralDeformer.h"
+#include <unordered_set>
 #include "api.h"
 
 PXR_NAMESPACE_OPEN_SCOPE

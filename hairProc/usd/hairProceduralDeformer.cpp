@@ -60,7 +60,7 @@ VtVec3fArray HairProcHairProceduralDeformer::_DeformOCL(const HdSampledDataSourc
     VtVec3fArray srcPos = srcPrimvarsSchema.GetPrimvar(HdTokens->points).GetPrimvarValue()->GetValue(shutterOffset).UncheckedGet<VtArray<GfVec3f>>();
     VtVec3fArray tgtPos = tgtPrimvarsSchema.GetPrimvar(HdTokens->points).GetPrimvarValue()->GetValue(shutterOffset).UncheckedGet<VtArray<GfVec3f>>();
 
-    peasyocl::Context* _oclContext = peasyocl::Context::getInstance();
+    peasyocl::Context* _oclContext = peasyocl::Context::GetInstance();
     peasyocl::KernelHandle* procKernel = _oclContext->GetKernelHandle(_primPath + "HairProc");
 
     VtMatrix3fArray tgtFrames = _CalcTargetFrames(shutterOffset, false, tgtPos, xform);
@@ -90,7 +90,7 @@ VtVec3fArray HairProcHairProceduralDeformer::_DeformOCL(const HdSampledDataSourc
 bool HairProcHairProceduralDeformer::InitOCL() {
     TRACE_FUNCTION();
 
-    peasyocl::Context* _oclContext = peasyocl::Context::getInstance();
+    peasyocl::Context* _oclContext = peasyocl::Context::GetInstance();
     _oclContext->Init();
     _oclContext->AddSource("hairProc.cl");
     _oclContext->Build();
@@ -214,7 +214,7 @@ VtMatrix3fArray HairProcHairProceduralDeformer::_CalcTargetFrames(
     auto srcCurveSchema = HdBasisCurvesSchema::GetFromParent(_sourceContainer);
     auto srcProcSchema = HairProcHairProceduralSchema::GetFromParent(_sourceContainer);
 
-    peasyocl::Context* _oclContext = peasyocl::Context::getInstance();
+    peasyocl::Context* _oclContext = peasyocl::Context::GetInstance();
     peasyocl::KernelHandle* tgtHandle = _oclContext->GetKernelHandle(_primPath + "TargetFrames");
 
     tgtHandle->SetBufferData<float>(xform.data(), "tgtXform", 16);
