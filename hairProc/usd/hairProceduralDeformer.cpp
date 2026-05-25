@@ -70,7 +70,7 @@ VtVec3fArray HairProcHairProceduralDeformer::_DeformOCL(const HdSampledDataSourc
 
     size_t global = srcCurveSchema.GetTopology().GetCurveVertexCounts()->GetTypedValue(0).size();
 
-    int err = _oclContext->Execute(global, _primPath + "HairProc");
+    int err = _oclContext->Execute(_primPath + "HairProc", cl::NDRange(global));
     if (err != CL_SUCCESS) {
         std::cout<<"Failed: Could not deform OCL" << std::endl;
         return VtVec3fArray();
@@ -92,10 +92,9 @@ bool HairProcHairProceduralDeformer::InitOCL() {
 
     peasyocl::Context* _oclContext = peasyocl::Context::GetInstance();
     _oclContext->Init();
-    _oclContext->AddSource("hairProc.cl");
-    _oclContext->Build();
-    peasyocl::KernelHandle* procKernel = _oclContext->AddKernel("HairProc", _primPath + "HairProc");
-    peasyocl::KernelHandle* tgtKernel = _oclContext->AddKernel("CalcTargetFrames", _primPath + "TargetFrames");
+    std::string clCode = peasyocl::utils::ClFile::GetClFileByName("hairProc.cl").LoadClKernelSource();
+    peasyocl::KernelHandle* procKernel = _oclContext->AddKernel(clCode, {}, "HairProc", _primPath + "HairProc");
+    peasyocl::KernelHandle* tgtKernel = _oclContext->AddKernel(clCode, {}, "CalcTargetFrames", _primPath + "TargetFrames");
 
     /* TODO: Error check each Get request */
     auto tgtPrimvarsSchema = HdPrimvarsSchema::GetFromParent(_targetContainers[0]);
@@ -224,7 +223,7 @@ VtMatrix3fArray HairProcHairProceduralDeformer::_CalcTargetFrames(
 
     const size_t global = _uniquePrims.size();
 
-    int err = _oclContext->Execute(global, _primPath + "TargetFrames");
+    int err = _oclContext->Execute(_primPath + "TargetFrames", cl::NDRange(global));
     if (err != CL_SUCCESS) {
         std::cout<<"Failed: Could not deform OCL" << std::endl;
         return VtMatrix3fArray();
