@@ -10,7 +10,13 @@ endfunction()
 
 
 function(create_target TARGET)
-    set(PLUG_INFO_LIBRARY_PATH "../../${TARGET}.dylib")
+	if (WIN32)
+		set(PLUG_INFO_LIBRARY_PATH "../../${TARGET}.dll")
+	elseif (APPLE)
+		set(PLUG_INFO_LIBRARY_PATH "../../${TARGET}.dylib")
+	else()
+		set(PLUG_INFO_LIBRARY_PATH "../../${TARGET}.so")
+	endif()
     set(PLUG_INFO_RESOURCE_PATH "resources")
     set(PLUG_INFO_ROOT "..")
 

@@ -39,7 +39,8 @@ private:
         const SdfPath& primPath,
         HairProcHairProceduralSchema& procSchema,
         HdBasisCurvesSchema& basisCurvesSchema,
-        HdPrimvarsSchema& primvarSchema);
+        HdPrimvarsSchema& primvarSchema,
+        HdContainerDataSourceHandle sourceDs = nullptr);
 
     typedef std::map<SdfPath, std::unordered_set<SdfPath, SdfPath::Hash>> _TargetsMap;
     mutable _TargetsMap _targets;

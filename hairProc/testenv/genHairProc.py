@@ -1,6 +1,6 @@
 from pxr import Usd, UsdGeom, Sdf
 
-from vik import HairProc
+from vik import HairProcHoudini as HairProc
 import numpy as np
 import os
 
@@ -167,6 +167,18 @@ def build_hair(stage, target, count=15, path="/curves", faces=[], apply_api=True
 
         assert(hair.GetPrim().HasAPI("HairProceduralAPI"))
         assert(hair.GetPrim().HasAPI(HairProc.HairProceduralAPI))
+
+        # Also write as primvars for pipelines that don't invoke UsdImagingAPISchemaAdapter
+        # (e.g. Houdini's Karma which uses HdLegacyPrimSceneIndex)
+        pv_api = UsdGeom.PrimvarsAPI(hair)
+        pv_api.CreatePrimvar('hairProc_prim', Sdf.ValueTypeNames.IntArray,
+                             UsdGeom.Tokens.constant).Set(curve_prm)
+        pv_api.CreatePrimvar('hairProc_paramuv', Sdf.ValueTypeNames.Float2Array,
+                             UsdGeom.Tokens.constant).Set(curve_uvs)
+        pv_api.CreatePrimvar('hairProc_rest', Sdf.ValueTypeNames.Point3fArray,
+                             UsdGeom.Tokens.constant).Set(pts)
+        pv_api.CreatePrimvar('hairProc_target', Sdf.ValueTypeNames.StringArray,
+                             UsdGeom.Tokens.constant).Set([str(target.GetPath())])
 
     return hair
 

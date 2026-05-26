@@ -48,7 +48,7 @@ HdContainerDataSourceHandle HairProcHairProceduralSchema::BuildRetained(
     }
     if (rest) {
         names[count] = HairProcHairProceduralSchemaTokens->rest;
-        values[count++] = prim;
+        values[count++] = rest;
     }
     return HdRetainedContainerDataSource::New(count, names, values);
 }

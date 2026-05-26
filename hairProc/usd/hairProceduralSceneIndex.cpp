@@ -5,6 +5,8 @@
 
 #include "pxr/pxr.h"
 #include "pxr/imaging/hd/tokens.h"
+#include "pxr/imaging/hd/retainedDataSource.h"
+#include "pxr/imaging/hd/overlayContainerDataSource.h"
 #include "pxr/base/trace/trace.h"
 #include "pxr/base/trace/reporter.h"
 
@@ -29,14 +31,8 @@ HdSceneIndexPrim HairProcHairProceduralSceneIndex::GetPrim(const SdfPath& primPa
     HdSceneIndexPrim prim = _GetInputSceneIndex()->GetPrim(primPath);
     if (prim.primType == HdPrimTypeTokens->basisCurves) {
 
-        HdBasisCurvesSchema curveSchema = HdBasisCurvesSchema::GetFromParent(prim.dataSource);
-        HdPrimvarsSchema primvarSchema = HdPrimvarsSchema::GetFromParent(prim.dataSource);
-        HairProcHairProceduralSchema hairProcSchema = HairProcHairProceduralSchema::GetFromParent(prim.dataSource);
-
-        if (curveSchema && primvarSchema && hairProcSchema) { 
-            if (auto deformer = _deformerMap.find(primPath); deformer != _deformerMap.end()) {
-                prim.dataSource = _HairProcDataSource::New(primPath, prim.dataSource, deformer->second);
-            }
+        if (auto it = _deformerMap.find(primPath); it != _deformerMap.end()) {
+            prim.dataSource = _HairProcDataSource::New(primPath, prim.dataSource, it->second);
         }
     }
     return prim;
@@ -47,17 +43,13 @@ HairProcHairProceduralSceneIndex::GetChildPrimPaths(const SdfPath& primPath) con
     return _GetInputSceneIndex()->GetChildPrimPaths(primPath);
 }
 
-void 
+void
 HairProcHairProceduralSceneIndex::_PrimsAdded(
         const HdSceneIndexBase& sender,
         const HdSceneIndexObserver::AddedPrimEntries& entries) {
-    if (!_IsObserved()) {
-        return;
-    }
 
     for (const HdSceneIndexObserver::AddedPrimEntry& entry: entries) {
         if (entry.primType == HdPrimTypeTokens->basisCurves) {
-
             auto prim = _GetInputSceneIndex()->GetPrim(entry.primPath);
             HdBasisCurvesSchema curveSchema = HdBasisCurvesSchema::GetFromParent(prim.dataSource);
             HdPrimvarsSchema primvarSchema = HdPrimvarsSchema::GetFromParent(prim.dataSource);
@@ -65,10 +57,60 @@ HairProcHairProceduralSceneIndex::_PrimsAdded(
 
             if (curveSchema && primvarSchema && hairProcSchema) {
                 _init_deformer(entry.primPath, hairProcSchema, curveSchema, primvarSchema);
+            } else if (curveSchema && primvarSchema) {
+                // Fallback for pipelines that don't invoke UsdImagingAPISchemaAdapter
+                // (e.g. Houdini's HdLegacyPrimSceneIndex). Read binding data from primvars.
+                auto primPv    = primvarSchema.GetPrimvar(TfToken("hairProc_prim"));
+                auto uvPv      = primvarSchema.GetPrimvar(TfToken("hairProc_paramuv"));
+                auto restPv    = primvarSchema.GetPrimvar(TfToken("hairProc_rest"));
+                auto targetPv  = primvarSchema.GetPrimvar(TfToken("hairProc_target"));
+
+                if (primPv && uvPv && restPv && targetPv) {
+                    VtValue vPrim   = primPv.GetPrimvarValue()->GetValue(0);
+                    VtValue vUv     = uvPv.GetPrimvarValue()->GetValue(0);
+                    VtValue vRest   = restPv.GetPrimvarValue()->GetValue(0);
+                    VtValue vTarget = targetPv.GetPrimvarValue()->GetValue(0);
+
+                    if (!vPrim.IsHolding<VtIntArray>() || !vUv.IsHolding<VtVec2fArray>() ||
+                        !vRest.IsHolding<VtVec3fArray>() || !vTarget.IsHolding<VtStringArray>()) {
+                        continue;
+                    }
+
+                    VtArray<SdfPath> targetPaths;
+                    for (const auto& s : vTarget.UncheckedGet<VtStringArray>()) {
+                        targetPaths.push_back(SdfPath(s));
+                    }
+
+                    auto hairProcRetained = HdRetainedContainerDataSource::New(
+                        HairProcHairProceduralSchemaTokens->prim,
+                            HdRetainedTypedSampledDataSource<VtIntArray>::New(vPrim.UncheckedGet<VtIntArray>()),
+                        HairProcHairProceduralSchemaTokens->paramuv,
+                            HdRetainedTypedSampledDataSource<VtVec2fArray>::New(vUv.UncheckedGet<VtVec2fArray>()),
+                        HairProcHairProceduralSchemaTokens->rest,
+                            HdRetainedTypedSampledDataSource<VtVec3fArray>::New(vRest.UncheckedGet<VtVec3fArray>()),
+                        HairProcHairProceduralSchemaTokens->target,
+                            HdRetainedTypedSampledDataSource<VtArray<SdfPath>>::New(targetPaths)
+                    );
+
+                    auto augmentedSource = HdOverlayContainerDataSource::New(
+                        HdRetainedContainerDataSource::New(
+                            HairProcHairProceduralSchemaTokens->hairProcedural, hairProcRetained),
+                        prim.dataSource
+                    );
+
+                    HairProcHairProceduralSchema syntheticSchema =
+                        HairProcHairProceduralSchema::GetFromParent(augmentedSource);
+                    if (syntheticSchema) {
+                        _init_deformer(entry.primPath, syntheticSchema, curveSchema, primvarSchema, augmentedSource);
+                    }
+                }
             }
         }
     }
 
+    if (!_IsObserved()) {
+        return;
+    }
     _SendPrimsAdded(entries);
 }
 
@@ -111,7 +153,12 @@ void HairProcHairProceduralSceneIndex::_init_deformer(
         const SdfPath& primPath,
         HairProcHairProceduralSchema& procSchema,
         HdBasisCurvesSchema& basisCurvesSchema,
-        HdPrimvarsSchema& primvarSchema){
+        HdPrimvarsSchema& primvarSchema,
+        HdContainerDataSourceHandle sourceDs){
+
+    if (_deformerMap.count(primPath)) {
+        return;
+    }
 
     HdPathArrayDataSourceHandle target = procSchema.GetTarget();
     VtArray<SdfPath> targets = target->GetTypedValue(0);
@@ -128,7 +175,9 @@ void HairProcHairProceduralSceneIndex::_init_deformer(
         return;
     }
 
-    HdContainerDataSourceHandle sourceDs = _GetInputSceneIndex()->GetPrim(primPath).dataSource;
+    if (!sourceDs) {
+        sourceDs = _GetInputSceneIndex()->GetPrim(primPath).dataSource;
+    }
     TraceCollector::GetInstance().SetEnabled(true);
 
     HairProcHairProceduralDeformerSharedPtr deformer = std::make_shared<HairProcHairProceduralDeformer>(targetDs, sourceDs, primPath);
