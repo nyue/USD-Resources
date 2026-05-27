@@ -1,3 +1,29 @@
+set(SCHEMA_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/usd)
+file(MAKE_DIRECTORY ${SCHEMA_OUTPUT_DIR})
+
+execute_process(
+    COMMAND usdGenSchema
+            ${CMAKE_CURRENT_SOURCE_DIR}/schema.usda
+            ${SCHEMA_OUTPUT_DIR}
+    RESULT_VARIABLE _gen_result
+)
+if(NOT _gen_result EQUAL 0)
+    message(FATAL_ERROR "usdGenSchema failed: ${_gen_result}")
+endif()
+
+# Place generated resource files where create_target() can find them
+file(COPY ${SCHEMA_OUTPUT_DIR}/plugInfo.json
+          ${SCHEMA_OUTPUT_DIR}/generatedSchema.usda
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+file(GLOB SCHEMA_CPP_SOURCES CONFIGURE_DEPENDS
+    ${SCHEMA_OUTPUT_DIR}/hairProcedural*.cpp
+    ${SCHEMA_OUTPUT_DIR}/tokens.cpp)
+file(GLOB SCHEMA_WRAP_SOURCES CONFIGURE_DEPENDS
+    ${SCHEMA_OUTPUT_DIR}/wrap*.cpp)
+file(GLOB SCHEMA_HEADERS CONFIGURE_DEPENDS
+    ${SCHEMA_OUTPUT_DIR}/*.h)
+
 file(GLOB sources "*.cpp")
 file(GLOB headers "*.h")
 list(FILTER sources EXCLUDE REGEX "./module*|./wrap*")
@@ -17,14 +43,18 @@ find_package(Python3 REQUIRED)
             ${PYPACKAGE_NAME}
         HEADERS
             ${headers}
+            ${SCHEMA_HEADERS}
         SOURCES
             ${sources}
+            ${SCHEMA_CPP_SOURCES}
         PY_SOURCES
             ${py_sources}
+            ${SCHEMA_WRAP_SOURCES}
         INCLUDE_DIRS
             ${PYTHON_INCLUDE_PATH}
             ${PXR_INCLUDE_DIRS}
             ${peasyocl_INCLUDE_DIR}
+            ${SCHEMA_OUTPUT_DIR}
         LIBS
             ${PXR_LIBRARIES}
             peasyocl
@@ -34,15 +64,15 @@ endif()
 
 if (${BUILD_HOUDINI_PLUGIN})
     # HOUDINI LIBRARY
-    
+
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
     set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-    
+
     set(HPLUGIN_NAME ${USDPLUGIN_NAME}Houdini)
-    
+
     list( APPEND CMAKE_PREFIX_PATH "${HOUDINI_INSTALL_ROOT}/toolkit/cmake" )
-    
+
     find_package(Houdini REQUIRED)
 
     set(PYTHON_LIB python3.10)
@@ -76,14 +106,18 @@ if (${BUILD_HOUDINI_PLUGIN})
             ${PYPACKAGE_NAME}
         HEADERS
             ${headers}
+            ${SCHEMA_HEADERS}
         SOURCES
             ${sources}
+            ${SCHEMA_CPP_SOURCES}
         PY_SOURCES
             ${py_sources}
+            ${SCHEMA_WRAP_SOURCES}
         INCLUDE_DIRS
             ${PYTHON_INCLUDE_PATH}
             ${PXR_INCLUDE_DIR}
             ${peasyocl_INCLUDE_DIR}
+            ${SCHEMA_OUTPUT_DIR}
         LIBS
             Houdini
             ${PYTHON_FRAMEWORK}
