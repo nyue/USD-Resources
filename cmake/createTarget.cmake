@@ -76,14 +76,21 @@ function(create_target TARGET)
     )
     
     set(_plugInfo plugInfo.json)
-    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/${_plugInfo}")
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_plugInfo}" OR
+       EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${_plugInfo}")
 
         if(${args_BUILD_HOUDINI})
             set(_plugInfo plugInfoHoudini.json)
         endif()
 
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_plugInfo}")
+            set(_plugInfo_path "${CMAKE_CURRENT_SOURCE_DIR}/${_plugInfo}")
+        else()
+            set(_plugInfo_path "${CMAKE_CURRENT_BINARY_DIR}/${_plugInfo}")
+        endif()
+
         configure_file(
-            ${_plugInfo}
+            ${_plugInfo_path}
             ${CMAKE_BINARY_DIR}/${_plugInfo}
             @ONLY
         )
@@ -114,11 +121,15 @@ function(create_target TARGET)
         INCLUDES DESTINATION include
     )
     
-    if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/generatedSchema.usda")
-        install(
-            FILES generatedSchema.usda
-            DESTINATION "lib/usd/${TARGET}/resources"
-        )
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/generatedSchema.usda")
+        set(_genSchema "${CMAKE_CURRENT_SOURCE_DIR}/generatedSchema.usda")
+    elseif(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/generatedSchema.usda")
+        set(_genSchema "${CMAKE_CURRENT_BINARY_DIR}/generatedSchema.usda")
+    else()
+        set(_genSchema "")
+    endif()
+    if(_genSchema)
+        install(FILES "${_genSchema}" DESTINATION "lib/usd/${TARGET}/resources")
     endif()
     if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/schema.usda")
         install(
