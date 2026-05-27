@@ -118,6 +118,8 @@ function(create_target TARGET)
     install(
         TARGETS ${TARGET}
         LIBRARY DESTINATION lib
+        RUNTIME DESTINATION lib
+        ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include
     )
     
@@ -147,10 +149,15 @@ function(create_target TARGET)
                 ${args_PY_SOURCES}
         )
 
-        set_target_properties(${USDPLUGIN_PYTHON_NAME}
-        PROPERTIES
-            INSTALL_RPATH "@loader_path/../../.."
-        )
+        if (NOT WIN32)
+            if (APPLE)
+                set_target_properties(${USDPLUGIN_PYTHON_NAME}
+                    PROPERTIES INSTALL_RPATH "@loader_path/../../..")
+            else()
+                set_target_properties(${USDPLUGIN_PYTHON_NAME}
+                    PROPERTIES INSTALL_RPATH "$ORIGIN/../../..")
+            endif()
+        endif()
         if (${args_BUILD_HOUDINI})
             target_compile_definitions(${USDPLUGIN_PYTHON_NAME}
                 PUBLIC
@@ -164,7 +171,11 @@ function(create_target TARGET)
                 ${INCLUDE_DIRS}
         )
 
-        set_target_properties(${USDPLUGIN_PYTHON_NAME} PROPERTIES SUFFIX ".so")
+        if (WIN32)
+            set_target_properties(${USDPLUGIN_PYTHON_NAME} PROPERTIES SUFFIX ".pyd")
+        else()
+            set_target_properties(${USDPLUGIN_PYTHON_NAME} PROPERTIES SUFFIX ".so")
+        endif()
 
         set_target_properties(${USDPLUGIN_PYTHON_NAME}
             PROPERTIES
@@ -193,7 +204,8 @@ function(create_target TARGET)
 
         install(
             TARGETS ${USDPLUGIN_PYTHON_NAME}
-            DESTINATION ${INSTALL_WRAPPER_DIR}
+            LIBRARY DESTINATION ${INSTALL_WRAPPER_DIR}
+            RUNTIME DESTINATION ${INSTALL_WRAPPER_DIR}
         )
 
         install(
