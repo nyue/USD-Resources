@@ -8,8 +8,6 @@
 #include "pxr/imaging/hd/primvarsSchema.h"
 #include "pxr/imaging/hd/xformSchema.h"
 #include "pxr/imaging/hd/basisCurvesTopologySchema.h"
-#include "pxr/base/trace/trace.h"
-
 #include "pxr/base/vt/value.h"
 #include "pxr/base/gf/matrix3f.h"
 #include "pxr/base/gf/matrix4f.h"
@@ -52,7 +50,6 @@ VtVec3fArray HairProcHairProceduralDeformer::Deform(const HdSampledDataSource::T
 }
 
 VtVec3fArray HairProcHairProceduralDeformer::_DeformOCL(const HdSampledDataSource::Time& shutterOffset) {
-    TRACE_FUNCTION();
     std::lock_guard<std::mutex> lock(_oclGlobalMutex);
 
     auto tgtPrimvarsSchema = HdPrimvarsSchema::GetFromParent(_targetContainers[0]);
@@ -107,7 +104,6 @@ VtVec3fArray HairProcHairProceduralDeformer::_DeformOCL(const HdSampledDataSourc
 
 
 bool HairProcHairProceduralDeformer::InitOCL() {
-    TRACE_FUNCTION();
     std::lock_guard<std::mutex> lock(_oclGlobalMutex);
 
     peasyocl::Context* _oclContext = peasyocl::Context::GetInstance();
@@ -267,8 +263,6 @@ VtMatrix3fArray HairProcHairProceduralDeformer::_CalcTargetFrames(
         const bool invert,
         VtVec3fArray& pts,
         GfMatrix4f& xform) {
-    TRACE_FUNCTION();
-
     peasyocl::Context* _oclContext = peasyocl::Context::GetInstance();
     peasyocl::KernelHandle* tgtHandle = _oclContext->GetKernelHandle(_primPath + "TargetFrames");
 
