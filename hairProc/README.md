@@ -147,3 +147,14 @@ PYTHONPATH=/path/to/install/lib/python \
 OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
 hython hairProc/testenv/genHairProc.py
 ```
+
+## Running Houdini with the plugin
+
+Launch Houdini with the same environment variables so the plugin and OpenCL kernel are discoverable:
+
+```bash
+PXR_PLUGINPATH_NAME=/path/to/install/lib/usd/hairProcHoudini/resources \
+LD_LIBRARY_PATH=/path/to/install/lib \
+OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
+houdini
+```
