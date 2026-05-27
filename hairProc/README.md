@@ -141,11 +141,13 @@ with a tube and plane as targets and 100k-strand grooms. Requires the `vik`
 Python package from the install tree.
 
 ```bash
-PXR_PLUGINPATH_NAME=/path/to/install/lib/usd/hairProcHoudini/resources \
-LD_LIBRARY_PATH=/path/to/install/lib \
-PYTHONPATH=/path/to/install/lib/python \
-OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
-hython hairProc/testenv/genHairProc.py
+(
+  SKROTVIKTOR_DIR=/home/nicholas.yue/systems/skrotViktor;
+  env PXR_PLUGINPATH_NAME=$SKROTVIKTOR_DIR/lib/usd/hairProcHoudini/resources \
+  LD_LIBRARY_PATH=$SKROTVIKTOR_DIR/lib \
+  PYTHONPATH=$SKROTVIKTOR_DIR/lib/python \
+  hython hairProc/testenv/genHairProc.py
+)
 ```
 
 ## Running Houdini with the plugin
@@ -153,8 +155,11 @@ hython hairProc/testenv/genHairProc.py
 Launch Houdini with the same environment variables so the plugin and OpenCL kernel are discoverable:
 
 ```bash
-PXR_PLUGINPATH_NAME=/path/to/install/lib/usd/hairProcHoudini/resources \
-LD_LIBRARY_PATH=/path/to/install/lib \
-OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
-houdini
+(
+  SKROTVIKTOR_DIR=/home/nicholas.yue/systems/skrotViktor;
+  env PXR_PLUGINPATH_NAME=$SKROTVIKTOR_DIR/lib/usd/hairProcHoudini/resources \
+  LD_LIBRARY_PATH=$SKROTVIKTOR_DIR/lib \
+  OCL_KERNEL_PATHS=$SKROTVIKTOR_DIR/ocl/kernels \
+  houdini
+)
 ```
