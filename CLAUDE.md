@@ -98,5 +98,9 @@ Files touched by codegen: `hairProceduralAPI.h/.cpp`, `tokens.h/.cpp`, `generate
 `hairProc/testenv/genHairProc.py` generates a test USD stage (`hairProc.usda`) with tube + plane targets and 100k-strand grooms. Requires the `vik` Python package from the install tree.
 
 ```bash
-PYTHONPATH=/path/to/install/lib/python python hairProc/testenv/genHairProc.py
+PXR_PLUGINPATH_NAME=/path/to/install/lib/usd/hairProcHoudini/resources \
+LD_LIBRARY_PATH=/path/to/install/lib \
+PYTHONPATH=/path/to/install/lib/python \
+OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
+hython hairProc/testenv/genHairProc.py
 ```

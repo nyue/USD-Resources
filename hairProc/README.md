@@ -141,5 +141,9 @@ with a tube and plane as targets and 100k-strand grooms. Requires the `vik`
 Python package from the install tree.
 
 ```bash
-PYTHONPATH=/path/to/install/lib/python python hairProc/testenv/genHairProc.py
+PXR_PLUGINPATH_NAME=/path/to/install/lib/usd/hairProcHoudini/resources \
+LD_LIBRARY_PATH=/path/to/install/lib \
+PYTHONPATH=/path/to/install/lib/python \
+OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
+hython hairProc/testenv/genHairProc.py
 ```
