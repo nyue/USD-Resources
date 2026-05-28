@@ -159,4 +159,10 @@ if (${BUILD_HOUDINI_PLUGIN})
             peasyocl
         )
 
+    # CMake auto-generates hairProcHoudini_EXPORTS but api.h checks HAIRPROC_EXPORTS.
+    # Without this the symbols get dllimport instead of dllexport on Windows.
+    if (WIN32)
+        target_compile_definitions(${HPLUGIN_NAME} PRIVATE HAIRPROC_EXPORTS)
+    endif()
+
     endif()
