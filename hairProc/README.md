@@ -163,3 +163,51 @@ Launch Houdini with the same environment variables so the plugin and OpenCL kern
   houdini
 )
 ```
+
+## Windows notes (Houdini 20.5 + VS2022)
+
+### Building
+
+```cmd
+cmake -B build -S . ^
+  -DBUILD_HOUDINI_PLUGIN=ON ^
+  -DHOUDINI_INSTALL_ROOT="%HFS%" ^
+  -Dpeasyocl_DIR=C:/path/to/peasyocl
+
+cmake --build   build --config RelWithDebInfo
+cmake --install build --config RelWithDebInfo --prefix C:/path/to/install
+```
+
+MSVC is a multi-config generator and ignores `CMAKE_BUILD_TYPE`. You **must**
+pass `--config <Release|RelWithDebInfo>` to *both* the build and install
+steps — mismatched configs silently install the wrong DLL.
+
+### Runtime registration workaround
+
+On Windows + Houdini 20.5, `TF_REGISTRY_FUNCTION(TfType)` and
+`TF_REGISTRY_FUNCTION(HdSceneIndexPlugin)` bodies in
+`hairProceduralSceneIndexPlugin.cpp` are not invoked at DLL load — even though
+the DLL loads and other static initializers in the same translation unit
+execute normally. As a workaround, an `#ifdef _WIN32` block at the bottom of
+that file performs `HdSceneIndexPluginRegistry::Define<>()` and
+`RegisterSceneIndexForRenderer()` directly from a plain anonymous-namespace
+static initializer, bypassing the TfRegistry mechanism. Linux is unaffected
+and continues to use TF_REGISTRY_FUNCTION normally.
+
+### Plugin and kernel discovery
+
+Set these as **Windows user environment variables** (via `setx` or
+`HKCU\Environment`), not in `houdini.env` — Houdini processes `houdini.env`
+after `TfPlugRegistry` has already scanned for plugins, so setting
+`PXR_PLUGINPATH_NAME` there has no effect:
+
+| Variable | Value |
+|---|---|
+| `PXR_PLUGINPATH_NAME` | `C:\path\to\install\lib\usd\hairProcHoudini\resources` |
+| `OCL_KERNEL_PATHS`    | `C:\path\to\install\ocl\kernels` |
+
+### Houdini user prefs dir
+
+Houdini 20.5 on Windows uses `%USERPROFILE%\houdini20.5\`, **not**
+`%USERPROFILE%\Documents\houdini20.5\`. Check `dso.cache` timestamps to confirm
+which dir is active before placing startup scripts there.
