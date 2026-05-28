@@ -16,9 +16,24 @@ include(cmake/createTarget.cmake)
 
 option(BUILD_USD_PLUGIN "Build the USD plugin" OFF)
 option(BUILD_HOUDINI_PLUGIN "Build the Houdini plugin" OFF)
-# set(BUILD_ALL 1)
+
+set(USDPLUGIN_NAME hairProc)
+set(PYPACKAGE_NAME vik)
+
+if (${BUILD_USD_PLUGIN} AND NOT DEFINED USD_INSTALL_ROOT)
+    message(FATAL_ERROR "Missing USD_INSTALL_ROOT")
+endif()
+
+if (${BUILD_HOUDINI_PLUGIN} AND NOT DEFINED HOUDINI_INSTALL_ROOT)
+    message(FATAL_ERROR "Missing HOUDINI_INSTALL_ROOT")
+endif()
 
 if ("${BUILD_USD_PLUGIN}" OR "${BUILD_HOUDINI_PLUGIN}")
-    add_subdirectory(hairProc)
+    add_subdirectory(usd)
+
+    install(DIRECTORY
+        kernels
+        DESTINATION ocl
+    )
 endif()
 

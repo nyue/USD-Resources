@@ -9,4 +9,4 @@ SKROTVIKTOR_DIR=$1
 env PXR_PLUGINPATH_NAME=$SKROTVIKTOR_DIR/lib/usd/hairProcHoudini/resources \
     LD_LIBRARY_PATH=$SKROTVIKTOR_DIR/lib \
     PYTHONPATH=$SKROTVIKTOR_DIR/lib/python \
-    hython hairProc/testenv/genHairProc.py
+    hython testenv/genHairProc.py

@@ -54,7 +54,7 @@ scene index (HairProceduralSceneIndex)
 deformer (HairProceduralDeformer)
   └─ holds target + source HdContainerDataSourceHandles
   └─ Deform() dispatches to _DeformOCL() — GPU path via peasyocl
-  └─ OpenCL kernel: hairProc/kernels/hairProc.cl
+  └─ OpenCL kernel: kernels/hairProc.cl
      - HairProc kernel: per-strand, frame-relative deformation
      - CalcTargetFrames kernel: builds 3x3 orthonormal frames per target prim
 ```
@@ -88,7 +88,7 @@ Key behaviour:
 If `schema.usda` is modified, regenerate the C++ boilerplate with:
 
 ```bash
-usdGenSchema hairProc/usd/schema.usda hairProc/usd/
+usdGenSchema usd/schema.usda usd/
 ```
 
 Files touched by codegen: `hairProceduralAPI.h/.cpp`, `tokens.h/.cpp`, `generatedSchema.usda`, `module.cpp`, `moduleDeps.cpp`, `wrapHairProceduralAPI.cpp`, `wrapTokens.cpp`.
@@ -96,7 +96,7 @@ Files touched by codegen: `hairProceduralAPI.h/.cpp`, `tokens.h/.cpp`, `generate
 ## Windows notes (Houdini 20.5 + VS2022)
 
 - **Build/install config**: MSVC is multi-config; `CMAKE_BUILD_TYPE` is ignored. Pass `--config RelWithDebInfo` (or `Release`) to **both** `cmake --build` AND `cmake --install` — mismatched configs silently install the wrong DLL.
-- **`HoudiniThirdParty` INTERFACE target**: required on Windows for pxr/boost symbols (`Arch_ConstructorInit` etc. are unresolved without it). Wired up in `hairProc/usd/CMakeLists.txt` via `$<$<PLATFORM_ID:Windows>:HoudiniThirdParty>`.
+- **`HoudiniThirdParty` INTERFACE target**: required on Windows for pxr/boost symbols (`Arch_ConstructorInit` etc. are unresolved without it). Wired up in `usd/CMakeLists.txt` via `$<$<PLATFORM_ID:Windows>:HoudiniThirdParty>`.
 - **`HAIRPROC_EXPORTS` define**: CMake auto-generates `hairProcHoudini_EXPORTS` but `api.h` checks `HAIRPROC_EXPORTS`. Without the explicit define on Windows, symbols get `dllimport` instead of `dllexport`.
 - **`TF_REGISTRY_FUNCTION` does NOT fire on Windows for this plugin**: bodies of `TF_REGISTRY_FUNCTION(TfType)` and `TF_REGISTRY_FUNCTION(HdSceneIndexPlugin)` in `hairProceduralSceneIndexPlugin.cpp` are never invoked at DLL load, even though the DLL loads and other static initializers in the same translation unit fire. The `#ifdef _WIN32` block at the bottom of that file performs `HdSceneIndexPluginRegistry::Define<>()` + `RegisterSceneIndexForRenderer()` directly from a plain static initializer, bypassing the TfRegistry mechanism. **Do not remove this block** when refactoring — Linux relies on TF_REGISTRY_FUNCTION and is unaffected.
 - **`extern "C" __declspec(dllexport)` placement**: must be OUTSIDE `PXR_NAMESPACE_OPEN_SCOPE` — MSVC does not reliably emit it as a plain C symbol when declared inside a C++ namespace.
@@ -105,12 +105,12 @@ Files touched by codegen: `hairProceduralAPI.h/.cpp`, `tokens.h/.cpp`, `generate
 
 ## Test data
 
-`hairProc/testenv/genHairProc.py` generates a test USD stage (`hairProc.usda`) with tube + plane targets and 100k-strand grooms. Requires the `vik` Python package from the install tree.
+`testenv/genHairProc.py` generates a test USD stage (`hairProc.usda`) with tube + plane targets and 100k-strand grooms. Requires the `vik` Python package from the install tree.
 
 ```bash
 PXR_PLUGINPATH_NAME=/path/to/install/lib/usd/hairProcHoudini/resources \
 LD_LIBRARY_PATH=/path/to/install/lib \
 PYTHONPATH=/path/to/install/lib/python \
 OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
-hython hairProc/testenv/genHairProc.py
+hython testenv/genHairProc.py
 ```
