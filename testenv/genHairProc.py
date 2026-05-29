@@ -1,6 +1,14 @@
 from pxr import Usd, UsdGeom, Sdf
 
-from vik import HairProc
+# Yes, it is complicated
+try:
+    import hou
+    #print("found")
+    from vik import HairProcHoudini as HairProc
+except ImportError:
+    #print("not found")
+    from vik import HairProc
+    
 import numpy as np
 import os
 
