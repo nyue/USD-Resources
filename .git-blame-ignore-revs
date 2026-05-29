@@ -1,0 +1,6 @@
+# Bulk reformats to skip in `git blame`.
+# Enable locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: apply clang-format
+dc618f2bba7c8b627a9c99b973f4865cfa4dd386
