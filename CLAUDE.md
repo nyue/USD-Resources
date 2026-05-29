@@ -32,7 +32,7 @@ cmake --install build --prefix /path/to/install
 | Mode | Builds | Plugin registers | Notes |
 |------|--------|-----------------|-------|
 | `BUILD_HOUDINI_PLUGIN` | ✓ | ✓ | Proven working — do not regress |
-| `BUILD_USD_PLUGIN` | ✓ | ✗ | Builds but plugin is not picked up at runtime (open issue) |
+| `BUILD_USD_PLUGIN` | ✓ | ✓ | Fixed: `usd/plugInfo.json` was missing adapter and scene index plugin type registrations |
 
 Both modes compile the **same source tree**. When fixing `BUILD_USD_PLUGIN` registration, always verify `BUILD_HOUDINI_PLUGIN` still works before committing — a fix that breaks Houdini is not acceptable.
 
@@ -116,6 +116,8 @@ Files touched by codegen: `hairProceduralAPI.h/.cpp`, `tokens.h/.cpp`, `generate
 
 `testenv/genHairProc.py` generates a test USD stage (`hairProc.usda`) with tube + plane targets and 100k-strand grooms. Requires the `vik` Python package from the install tree.
 
+### Houdini build
+
 ```bash
 PXR_PLUGINPATH_NAME=/path/to/install/lib/usd/hairProcHoudini/resources \
 LD_LIBRARY_PATH=/path/to/install/lib \
@@ -123,3 +125,14 @@ PYTHONPATH=/path/to/install/lib/python \
 OCL_KERNEL_PATHS=/path/to/install/ocl/kernels \
 hython testenv/genHairProc.py
 ```
+
+### USD build
+
+Use `usd_gen_test_data.sh`, passing the install prefix as the argument. The OpenUSD Python path must be on `PYTHONPATH` before the script runs:
+
+```bash
+env PYTHONPATH=$HOME/systems/OpenUSD/24.03/python3.11/lib/python \
+    ./usd_gen_test_data.sh /path/to/skrotViktor-usd
+```
+
+The script sets `PXR_PLUGINPATH_NAME`, `LD_LIBRARY_PATH`, `PYTHONPATH`, and `OCL_KERNEL_PATHS` from the install prefix automatically.
