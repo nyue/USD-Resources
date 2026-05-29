@@ -1,6 +1,6 @@
 from pxr import Usd, UsdGeom, Sdf
 
-from vik import HairProcHoudini as HairProc
+from vik import HairProc
 import numpy as np
 import os
 
