@@ -27,6 +27,15 @@ cmake --build build -j$(nproc)
 cmake --install build --prefix /path/to/install
 ```
 
+### Build status
+
+| Mode | Builds | Plugin registers | Notes |
+|------|--------|-----------------|-------|
+| `BUILD_HOUDINI_PLUGIN` | ✓ | ✓ | Proven working — do not regress |
+| `BUILD_USD_PLUGIN` | ✓ | ✗ | Builds but plugin is not picked up at runtime (open issue) |
+
+Both modes compile the **same source tree**. When fixing `BUILD_USD_PLUGIN` registration, always verify `BUILD_HOUDINI_PLUGIN` still works before committing — a fix that breaks Houdini is not acceptable.
+
 CMake presets are defined in `CMakePresets.json` (`ubuntu-debug`, `rh-debug`, `windows-debug`, `macos-debug`). All use Ninja.
 
 Required external dependencies:
