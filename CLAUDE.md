@@ -32,9 +32,20 @@ cmake --install build --prefix /path/to/install
 | Mode | Builds | Plugin registers | Notes |
 |------|--------|-----------------|-------|
 | `BUILD_HOUDINI_PLUGIN` | ✓ | ✓ | Proven working — do not regress |
-| `BUILD_USD_PLUGIN` | ✓ | ✓ | Fixed: `usd/plugInfo.json` was missing adapter and scene index plugin type registrations |
+| `BUILD_USD_PLUGIN` | ✓ | ✓ | Working in usdview — but requires `USDIMAGINGGL_ENGINE_ENABLE_SCENE_INDEX=1` (see below) |
 
 Both modes compile the **same source tree**. When fixing `BUILD_USD_PLUGIN` registration, always verify `BUILD_HOUDINI_PLUGIN` still works before committing — a fix that breaks Houdini is not acceptable.
+
+### usdview requires the scene-index feature flag (OpenUSD 24.03)
+
+The two build modes reach the deformer by **different paths**:
+
+- **usdview / standalone OpenUSD** relies on `UsdImagingAPISchemaAdapter` to propagate the `HairProceduralAPI` schema namespace into the Hydra 2.0 scene index (the primary path in `_PrimsAdded`).
+- **Houdini / Karma** uses `HdLegacyPrimSceneIndex`, which does *not* invoke the API schema adapter, so the scene index falls back to reading capture data from `hairProc_*` primvars.
+
+In OpenUSD 24.03, `USDIMAGINGGL_ENGINE_ENABLE_SCENE_INDEX` defaults to **false**, so `UsdImagingGLEngine` uses the legacy `UsdImagingDelegate` and **never invokes the API schema adapter**. The result: the plugin loads, `GetPrim` is called, but `hairProcedural` data never reaches the scene index and the hair stays static.
+
+**Fix:** set `USDIMAGINGGL_ENGINE_ENABLE_SCENE_INDEX=1` when launching usdview (already wired into `usd_launch_usdview.sh`). With it set, `HairProcHairProceduralAPIAdapter::GetImagingSubprimData` fires, the deformer is created via the schema path, and scrubbing deforms the groom. This is an env flag only — no code change is needed.
 
 CMake presets are defined in `CMakePresets.json` (`ubuntu-debug`, `rh-debug`, `windows-debug`, `macos-debug`). All use Ninja.
 
