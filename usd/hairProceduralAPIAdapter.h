@@ -8,30 +8,25 @@
 
 #include <iostream>
 
-
 PXR_NAMESPACE_OPEN_SCOPE
 
-class HairProcHairProceduralAPIAdapter : public UsdImagingAPISchemaAdapter {
+class HairProcHairProceduralAPIAdapter : public UsdImagingAPISchemaAdapter
+{
 public:
-    HAIRPROC_API
-    ~HairProcHairProceduralAPIAdapter() override;
-    
-    using BaseAdapter = UsdImagingAPISchemaAdapter;
+  HAIRPROC_API
+  ~HairProcHairProceduralAPIAdapter() override;
 
-    HAIRPROC_API
-    HdContainerDataSourceHandle GetImagingSubprimData(
-        UsdPrim const& prim,
-        TfToken const& subprim,
-        TfToken const& appliedInstanceName,
-        const UsdImagingDataSourceStageGlobals& stageGlobals) override;
+  using BaseAdapter = UsdImagingAPISchemaAdapter;
 
-    HAIRPROC_API
-    HdDataSourceLocatorSet InvalidateImagingSubprim(
-        UsdPrim const& prim,
-        TfToken const& subprim,
-        TfToken const& appliedInstanceName,
-        TfTokenVector const& properties,
-        UsdImagingPropertyInvalidationType invalidationType) override;
+  HAIRPROC_API
+  HdContainerDataSourceHandle GetImagingSubprimData(UsdPrim const& prim, TfToken const& subprim,
+    TfToken const& appliedInstanceName,
+    const UsdImagingDataSourceStageGlobals& stageGlobals) override;
+
+  HAIRPROC_API
+  HdDataSourceLocatorSet InvalidateImagingSubprim(UsdPrim const& prim, TfToken const& subprim,
+    TfToken const& appliedInstanceName, TfTokenVector const& properties,
+    UsdImagingPropertyInvalidationType invalidationType) override;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

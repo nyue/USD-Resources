@@ -8,15 +8,15 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-class HairProcHairProceduralSceneIndexPlugin : public HdSceneIndexPlugin {
+class HairProcHairProceduralSceneIndexPlugin : public HdSceneIndexPlugin
+{
 public:
-    HairProcHairProceduralSceneIndexPlugin();
-    ~HairProcHairProceduralSceneIndexPlugin() override;
+  HairProcHairProceduralSceneIndexPlugin();
+  ~HairProcHairProceduralSceneIndexPlugin() override;
 
 protected:
-    HdSceneIndexBaseRefPtr _AppendSceneIndex(
-        const HdSceneIndexBaseRefPtr& inputScene,
-        const HdContainerDataSourceHandle& inputArgs) override;
+  HdSceneIndexBaseRefPtr _AppendSceneIndex(const HdSceneIndexBaseRefPtr& inputScene,
+    const HdContainerDataSourceHandle& inputArgs) override;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE
