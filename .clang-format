@@ -1,0 +1,17 @@
+---
+# This configuration requires clang-format 3.8 or higher.
+BasedOnStyle: Mozilla
+AlignAfterOpenBracket: DontAlign
+AlignOperands: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterDefinitionReturnType: None
+BreakBeforeBraces: Allman
+BinPackArguments: true
+BinPackParameters: true
+ColumnLimit: 100
+# Include order is hand-managed (pxr/pxr.h first); don't let clang-format
+# reorder it.
+SortIncludes: false
+# Standard kept in sync with CMAKE_CXX_STANDARD (C++17) in CMakeLists.txt.
+Standard: c++17
+...
